@@ -1,0 +1,37 @@
+{
+	"compiler": {
+		"version": "0.5.0+commit.1d4f565a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"methods": {}
+		},
+		"userdoc": {
+			"methods": {},
+			"notice": "Utility library of inline functions on addresses\r"
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"src\\BaseRegistrarImplementation.sol": "Address"
+		},
+		"evmVersion": "byzantium",
+		"libraries": {},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"src\\BaseRegistrarImplementation.sol": {
+			"keccak256": "0x77057f4837516937dd3ba77af4f5e082a5f85aee3e7131a2296d9841763ccf51",
+			"urls": [
+				"bzzr://4533105aa46c91d262e4a091e3797f0e3fcf65e2f2cb43e6fe9b60ec1be437a5"
+			]
+		}
+	},
+	"version": 1
+}
