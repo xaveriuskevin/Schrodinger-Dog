@@ -1,24 +1,31 @@
 {
 	"compiler": {
-		"version": "0.5.0+commit.1d4f565a"
+		"version": "0.8.18+commit.87f61d96"
 	},
 	"language": "Solidity",
 	"output": {
 		"abi": [],
 		"devdoc": {
-			"methods": {}
+			"details": "Collection of functions related to the address type",
+			"kind": "dev",
+			"methods": {},
+			"version": 1
 		},
 		"userdoc": {
+			"kind": "user",
 			"methods": {},
-			"notice": "Utility library of inline functions on addresses\r"
+			"version": 1
 		}
 	},
 	"settings": {
 		"compilationTarget": {
-			"src\\BaseRegistrarImplementation.sol": "Address"
+			"src\\SimpleNFT_flat.sol": "Address"
 		},
-		"evmVersion": "byzantium",
+		"evmVersion": "paris",
 		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
 		"optimizer": {
 			"enabled": false,
 			"runs": 200
@@ -26,10 +33,12 @@
 		"remappings": []
 	},
 	"sources": {
-		"src\\BaseRegistrarImplementation.sol": {
-			"keccak256": "0x77057f4837516937dd3ba77af4f5e082a5f85aee3e7131a2296d9841763ccf51",
+		"src\\SimpleNFT_flat.sol": {
+			"keccak256": "0x2af3d9f38982df0e2f5c839ff2a0e1f53fef7463bcb528a7579dfefb70eb57b0",
+			"license": "MIT",
 			"urls": [
-				"bzzr://4533105aa46c91d262e4a091e3797f0e3fcf65e2f2cb43e6fe9b60ec1be437a5"
+				"bzz-raw://0e9337949a818d7f898ddd5e91234112b9bd6ee858f8a6f75eb6320c49b14651",
+				"dweb:/ipfs/QmVCSyza5a2f8A9U9DCrqwksxyhXKQTrhUwnK4su49BtUF"
 			]
 		}
 	},
