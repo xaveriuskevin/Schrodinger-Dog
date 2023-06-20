@@ -1242,16 +1242,13 @@ contract NFT is ERC721Enumerable, Ownable {
   uint256 public maxMintAmount = 20;
   bool public paused = false;
   bool public revealed = false;
-  string public notRevealedUri;
 
   constructor(
     string memory _name,
     string memory _symbol,
-    string memory _initBaseURI,
-    string memory _initNotRevealedUri
+    string memory _initBaseURI
   ) ERC721(_name, _symbol) {
     setBaseURI(_initBaseURI);
-    setNotRevealedURI(_initNotRevealedUri);
   }
 
   // internal
@@ -1300,10 +1297,6 @@ contract NFT is ERC721Enumerable, Ownable {
       _exists(tokenId),
       "ERC721Metadata: URI query for nonexistent token"
     );
-    
-    if(revealed == false) {
-        return notRevealedUri;
-    }
 
     string memory currentBaseURI = _baseURI();
     return bytes(currentBaseURI).length > 0
@@ -1323,10 +1316,6 @@ contract NFT is ERC721Enumerable, Ownable {
   function setmaxMintAmount(uint256 _newmaxMintAmount) public onlyOwner {
     maxMintAmount = _newmaxMintAmount;
   }
-  
-  function setNotRevealedURI(string memory _notRevealedURI) public onlyOwner {
-    notRevealedUri = _notRevealedURI;
-  }
 
   function setBaseURI(string memory _newBaseURI) public onlyOwner {
     baseURI = _newBaseURI;
@@ -1344,7 +1333,7 @@ contract NFT is ERC721Enumerable, Ownable {
     // This will pay HashLips 5% of the initial sale.
     // You can remove this if you want, or keep it in to support HashLips and his channel.
     // =============================================================================
-    (bool hs, ) = payable(0x943590A42C27D08e3744202c4Ae5eD55c2dE240D).call{value: address(this).balance * 5 / 100}("");
+    (bool hs, ) = payable(0xe3f67c7ad8Af0dFFe5C17b397cAf94582306ec4B).call{value: address(this).balance * 5 / 100}("");
     require(hs);
     // =============================================================================
     

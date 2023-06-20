@@ -21,11 +21,6 @@
 						"internalType": "string",
 						"name": "_initBaseURI",
 						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "_initNotRevealedUri",
-						"type": "string"
 					}
 				],
 				"stateMutability": "nonpayable",
@@ -285,19 +280,6 @@
 			},
 			{
 				"inputs": [],
-				"name": "notRevealedUri",
-				"outputs": [
-					{
-						"internalType": "string",
-						"name": "",
-						"type": "string"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
 				"name": "owner",
 				"outputs": [
 					{
@@ -485,19 +467,6 @@
 					}
 				],
 				"name": "setCost",
-				"outputs": [],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "string",
-						"name": "_notRevealedURI",
-						"type": "string"
-					}
-				],
-				"name": "setNotRevealedURI",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -782,11 +751,11 @@
 	},
 	"sources": {
 		"src\\SimpleNFT_flat.sol": {
-			"keccak256": "0x2af3d9f38982df0e2f5c839ff2a0e1f53fef7463bcb528a7579dfefb70eb57b0",
+			"keccak256": "0x0a9f9e30026e84625866b222f21621237916e82ed8f0defaa8cc1d6eb0de3506",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://0e9337949a818d7f898ddd5e91234112b9bd6ee858f8a6f75eb6320c49b14651",
-				"dweb:/ipfs/QmVCSyza5a2f8A9U9DCrqwksxyhXKQTrhUwnK4su49BtUF"
+				"bzz-raw://eac9b357b0c51153a2b330a49bd31b23dcd639f9bf91bf786ef30fb519894d3c",
+				"dweb:/ipfs/QmQ9okUm1VTxkdP9QNtrfjFEUyfHY5jWiVtVGFcs7tFaEm"
 			]
 		}
 	},
