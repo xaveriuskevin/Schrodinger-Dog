@@ -1240,8 +1240,7 @@ contract SchrodingerCat is ERC721Enumerable, Ownable {
   uint256 public cost = 0.0005 ether;
   uint256 public maxSupply = 10000;
   uint256 public maxMintAmount = 200;
-  bool public paused = false;
-  bool public revealed = false;
+  uint256 public releaseDate = 1688169600;
 
   constructor(
     string memory _name,
@@ -1259,7 +1258,7 @@ contract SchrodingerCat is ERC721Enumerable, Ownable {
   // public
   function mint(uint256 _mintAmount) public payable {
     uint256 supply = totalSupply();
-    require(!paused);
+    require(block.timestamp >= releaseDate);
     require(_mintAmount > 0);
     require(_mintAmount <= maxMintAmount);
     require(supply + _mintAmount <= maxSupply);
@@ -1306,6 +1305,10 @@ contract SchrodingerCat is ERC721Enumerable, Ownable {
 
   //only owner
 
+  function setReleaseDate(uint256 _releaseDate) public onlyOwner {
+    releaseDate = _releaseDate;
+  }
+
   function setCost(uint256 _newCost) public onlyOwner {
     cost = _newCost;
   }
@@ -1320,10 +1323,6 @@ contract SchrodingerCat is ERC721Enumerable, Ownable {
 
   function setBaseExtension(string memory _newBaseExtension) public onlyOwner {
     baseExtension = _newBaseExtension;
-  }
-
-  function pause(bool _state) public onlyOwner {
-    paused = _state;
   }
  
   function withdraw() public payable onlyOwner {
