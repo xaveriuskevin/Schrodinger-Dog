@@ -1305,10 +1305,7 @@ contract SchrodingerCat is ERC721Enumerable, Ownable {
   }
 
   //only owner
-  function reveal() public onlyOwner {
-      revealed = true;
-  }
-  
+
   function setCost(uint256 _newCost) public onlyOwner {
     cost = _newCost;
   }
@@ -1330,18 +1327,7 @@ contract SchrodingerCat is ERC721Enumerable, Ownable {
   }
  
   function withdraw() public payable onlyOwner {
-    // This will pay HashLips 5% of the initial sale.
-    // You can remove this if you want, or keep it in to support HashLips and his channel.
-    // =============================================================================
-    (bool hs, ) = payable(0xe3f67c7ad8Af0dFFe5C17b397cAf94582306ec4B).call{value: address(this).balance * 5 / 100}("");
-    require(hs);
-    // =============================================================================
-    
-    // This will payout the owner 95% of the contract balance.
-    // Do not remove this otherwise you will not be able to withdraw the funds.
-    // =============================================================================
     (bool os, ) = payable(owner()).call{value: address(this).balance}("");
     require(os);
-    // =============================================================================
   }
 }
