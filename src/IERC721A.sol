@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 // File: @openzeppelin/contracts/utils/introspection/IERC165.sol
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.19;
 /**
  * @dev Interface of the ERC165 standard, as defined in the
  * https://eips.ethereum.org/EIPS/eip-165[EIP].
@@ -25,7 +25,7 @@ interface IERC165 {
 
 
 // File: @openzeppelin/contracts/token/ERC721/IERC721.sol
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.19;
 /**
  * @dev Required interface of an ERC721 compliant contract.
  */
@@ -163,7 +163,7 @@ interface IERC721 is IERC165 {
     ) external;
 }
 
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.19;
 
 // File: @openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol
 // Used by : IERC721A
@@ -188,7 +188,7 @@ interface IERC721Metadata is IERC721 {
     function tokenURI(uint256 tokenId) external view returns (string memory);
 }
 
-pragma solidity ^0.8.4;
+pragma solidity >=0.8.19;
 /**
  * @dev Interface of an ERC721A compliant contract.
  */

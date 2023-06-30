@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.4;
+pragma solidity >=0.8.19;
 
-import './IERC721A.sol';
+import "./IERC721A.sol";
 
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.19;
 // File: @openzeppelin/contracts/token/ERC721/IERC721Receiver.sol
 /**
  * @title ERC721 token receiver interface
@@ -30,7 +30,7 @@ interface IERC721Receiver {
 }
 
 // File: @openzeppelin/contracts/utils/Address.sol
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.19;
 /**
  * @dev Collection of functions related to the address type
  */
@@ -245,7 +245,7 @@ library Address {
 }
 
 // File: @openzeppelin/contracts/utils/Strings.sol
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.19;
 /**
  * @dev String operations.
  */
@@ -310,7 +310,7 @@ library Strings {
 }
 
 // File: @openzeppelin/contracts/utils/Context.sol
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.19;
 /**
  * @dev Provides information about the current execution context, including the
  * sender of the transaction and its data. While these are generally available
@@ -332,7 +332,7 @@ abstract contract Context {
 }
 
 // File: @openzeppelin/contracts/utils/introspection/ERC165.sol
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.19;
 /**
  * @dev Implementation of the {IERC165} interface.
  *
@@ -356,7 +356,7 @@ abstract contract ERC165 is IERC165 {
     }
 }
 
-pragma solidity ^0.8.4;
+pragma solidity >=0.8.19;
 /**
  * @dev Implementation of https://eips.ethereum.org/EIPS/eip-721[ERC721] Non-Fungible Token Standard, including
  * the Metadata extension. Built to optimize for lower gas during batch mints.
@@ -537,7 +537,7 @@ contract ERC721A is Context, ERC165, IERC721A {
         if (!_exists(tokenId)) revert URIQueryForNonexistentToken();
 
         string memory baseURI = _baseURI();
-        return bytes(baseURI).length != 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : '';
+        return bytes(baseURI).length != 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
 
     /**
@@ -546,7 +546,7 @@ contract ERC721A is Context, ERC165, IERC721A {
      * by default, can be overriden in child contracts.
      */
     function _baseURI() internal view virtual returns (string memory) {
-        return '';
+        return "";
     }
 
     /**
@@ -608,7 +608,7 @@ contract ERC721A is Context, ERC165, IERC721A {
         address to,
         uint256 tokenId
     ) public virtual override {
-        safeTransferFrom(from, to, tokenId, '');
+        safeTransferFrom(from, to, tokenId, "");
     }
 
     /**
@@ -641,7 +641,7 @@ contract ERC721A is Context, ERC165, IERC721A {
      * @dev Equivalent to `_safeMint(to, quantity, '')`.
      */
     function _safeMint(address to, uint256 quantity) internal {
-        _safeMint(to, quantity, '');
+        _safeMint(to, quantity, "");
     }
 
     /**

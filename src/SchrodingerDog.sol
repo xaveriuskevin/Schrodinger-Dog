@@ -3,7 +3,7 @@
 import "./ERC721A.sol";
 
 // File: @openzeppelin/contracts/access/Ownable.sol
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.19;
 /**
  * @dev Contract module which provides a basic access control mechanism, where
  * there is an account (an owner) that can be granted exclusive access to
@@ -70,7 +70,7 @@ abstract contract Ownable is Context {
     }
 }
 
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity >=0.8.19;
 
 contract SchrodingerDog is ERC721A, Ownable {
   using Strings for uint256;
@@ -130,7 +130,7 @@ contract SchrodingerDog is ERC721A, Ownable {
   {
     require(
       _exists(tokenId),
-      "ERC721Metadata: URI query for nonexistent token"
+      "Metadata:URI query for nonexistent token"
     );
 
     string memory currentBaseURI = _baseURI();
