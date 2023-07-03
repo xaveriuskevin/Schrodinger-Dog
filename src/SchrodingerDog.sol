@@ -399,8 +399,8 @@ contract SchrodingerDog is ERC721A, Ownable {
   // public
   function mint(uint256 quantity) public payable {
     uint256 supply = totalSupply();
-    require(block.timestamp >= releaseDate);
-    require(quantity > 0);
+    require(block.timestamp >= releaseDate,"Havent Release Yet!");
+    require(quantity > 0,"Quantity couldn't be 0");
     require(quantity <= maxMintAmount);
     require(supply + quantity <= maxSupply);
 
