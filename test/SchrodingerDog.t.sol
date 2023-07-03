@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.7;
+pragma solidity >=0.8.19;
 
 
 // import "../lib/forge-std/src/Base.sol";
@@ -10,7 +10,7 @@ import {SchrodingerDog} from "../src/SchrodingerDog.sol";
 
 contract SchrodingerDogTest is Test {
     SchrodingerDog public schrodingerDog;
-    
+
 
     function setUp() public {
         schrodingerDog = new SchrodingerDog("Schrodinger Dog", "SD-K","https://api.coolcatsnft.com/cat/");
@@ -51,5 +51,10 @@ contract SchrodingerDogTest is Test {
         assertEq(testBaseExtension,todayBaseExtension);
     }
 
+    // function testMint() public {
+    //     vm.start
+    //     schrodingerDog.mint(2);
+    //     // ownerOf
+    // }
     
 }
