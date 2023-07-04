@@ -403,13 +403,20 @@ contract SchrodingerDog is ERC721A, Ownable {
     require(quantity > 0,"Quantity couldn't be 0");
     require(quantity <= maxMintAmount);
     require(supply + quantity <= maxSupply);
+    require(msg.value >= cost * quantity,"insufficient fund");
 
-    if (msg.sender != owner()) {
-      require(msg.value >= cost * quantity);
-    }
+    _mint(msg.sender, quantity);
 
-    _safeMint(msg.sender, quantity);
+  }
 
+  function mintForOwner(uint256 quantity) public onlyOwner {
+    uint256 supply = totalSupply();
+    require(block.timestamp >= releaseDate,"Havent Release Yet!");
+    require(quantity > 0,"Quantity couldn't be 0");
+    require(quantity <= maxMintAmount);
+    require(supply + quantity <= maxSupply);
+
+    _mint(msg.sender, quantity);
   }
 
   function walletOfOwner(address _owner)
