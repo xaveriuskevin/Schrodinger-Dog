@@ -23,20 +23,32 @@ contract SchrodingerDogTest is Test,ERC721Holder {
 
         //Give Public Address Money
         vm.deal(_kevin,10 ether);
+
+        //Give Owner Address Money
+        vm.deal(address(this),10 ether);
     }
 
     function testSetCost() public {
+        //Owner Set New Cost
         schrodingerDog.setCost(0.5 ether);
         uint256 newCost = schrodingerDog.cost();
+
+        //Test
         uint256 testCost = 0.5 ether;
+
+        //Public Try Set
         vm.startPrank(address(_kevin));
         vm.expectRevert("Ownable: caller is not the owner");
         schrodingerDog.setCost(0.5 ether);
         vm.warp(1688403600);
+
+        //Public Try mint with new Cost
         vm.expectRevert("insufficient fund");
-        schrodingerDog.mint{value: 0.1 ether}(1);
+        schrodingerDog.mint{value: 0.005 ether}(1);
         schrodingerDog.mint{value: 0.9 ether}(1);
         vm.stopPrank();
+
+        //Assert
         assertEq(testCost,newCost);
         assertEq(schrodingerDog.ownerOf(1),_kevin);
     }
@@ -92,7 +104,7 @@ contract SchrodingerDogTest is Test,ERC721Holder {
 
     function testSetBaseExtension() public {
         //Test
-        string memory testBaseExtension = ".json";
+        string memory testBaseExtension = "";
         
         //Public Set
         vm.startPrank(address(_kevin));
@@ -187,13 +199,13 @@ contract SchrodingerDogTest is Test,ERC721Holder {
         assertEq(schrodingerDog.ownerOf(3),_kevin);
         
         //Assert to check if owner balance before withdraw
-        assertEq(address(this).balance,79228162514.264337593543950335 ether);
+        assertEq(address(this).balance,10 ether);
 
         //Withdraw
         schrodingerDog.withdraw(address(this));
         
         //Assert if Owner Balance Increase
-        assertEq(address(this).balance,79228162515.264337593543950335 ether);
+        assertEq(address(this).balance,11 ether);
 
         //Assert if contract Balance Decrease
         assertEq(address(schrodingerDog).balance, 0 ether);
