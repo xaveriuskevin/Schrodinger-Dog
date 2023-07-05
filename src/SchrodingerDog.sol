@@ -397,11 +397,11 @@ contract SchrodingerDog is ERC721A, Ownable {
   }
 
   // public
-  function mint(uint256 quantity) public payable {
+  function mint(uint256 quantity) external payable {
     uint256 supply = totalSupply();
     require(block.timestamp >= releaseDate,"Havent Release Yet!");
     require(quantity > 0,"Quantity couldn't be 0");
-    require(quantity <= maxMintAmount);
+    require(quantity <= maxMintAmount,"Quantity cannot be over the max mint amount");
     require(supply + quantity <= maxSupply);
     require(msg.value >= cost * quantity,"insufficient fund");
 
@@ -409,18 +409,18 @@ contract SchrodingerDog is ERC721A, Ownable {
 
   }
 
-  function mintForOwner(uint256 quantity) public onlyOwner {
+  function freeMint(uint256 quantity) external onlyOwner {
     uint256 supply = totalSupply();
     require(block.timestamp >= releaseDate,"Havent Release Yet!");
     require(quantity > 0,"Quantity couldn't be 0");
-    require(quantity <= maxMintAmount);
+    require(quantity <= maxMintAmount,"Quantity cannot be over the max mint amount");
     require(supply + quantity <= maxSupply);
 
     _mint(msg.sender, quantity);
   }
 
-  function walletOfOwner(address _owner)
-    public
+  function totalMintedOfOwner(address _owner)
+    external
     view
     returns (uint256)
   {
@@ -429,6 +429,11 @@ contract SchrodingerDog is ERC721A, Ownable {
     return tokenIds;
   }
 
+    //tambah function biar bisa tau owner wallet itu punya token id apa aja
+
+
+
+    
   function tokenURI(uint256 tokenId)
     public
     view
@@ -449,15 +454,15 @@ contract SchrodingerDog is ERC721A, Ownable {
 
   //only owner
 
-  function setReleaseDate(uint256 _releaseDate) public onlyOwner {
+  function setReleaseDate(uint256 _releaseDate) external onlyOwner {
     releaseDate = _releaseDate;
   }
 
-  function setCost(uint256 _newCost) public onlyOwner {
+  function setCost(uint256 _newCost) external onlyOwner {
     cost = _newCost;
   }
 
-  function setmaxMintAmount(uint256 _newmaxMintAmount) public onlyOwner {
+  function setmaxMintAmount(uint256 _newmaxMintAmount) external onlyOwner {
     maxMintAmount = _newmaxMintAmount;
   }
 
@@ -465,12 +470,16 @@ contract SchrodingerDog is ERC721A, Ownable {
     baseURI = _newBaseURI;
   }
 
-  function setBaseExtension(string memory _newBaseExtension) public onlyOwner {
+  function setBaseExtension(string memory _newBaseExtension) external onlyOwner {
     baseExtension = _newBaseExtension;
   }
  
-  function withdraw() public payable onlyOwner {
-    (bool os, ) = payable(owner()).call{value: address(this).balance}("");
-    require(os);
+  function withdraw(address to) external onlyOwner {
+    (bool success, ) = payable(to).call{value: address(this).balance}("");
+    require(success);
+  }
+
+  function _startTokenId() internal pure override returns(uint256) {
+    return 1;
   }
 }
