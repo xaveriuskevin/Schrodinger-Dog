@@ -1,13 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.19;
 
-
-// import "../lib/forge-std/src/Base.sol";
-// import "../lib/forge-std/src/StdStorage.sol";
 import "../lib/forge-std/src/Test.sol";
 
 import {SchrodingerDog} from "../src/SchrodingerDog.sol";
-import { ERC721Holder } from "@openzeppelin-contracts/contracts/token/ERC721/utils/ERC721Holder.sol";
+import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 contract SchrodingerDogTest is Test,ERC721Holder {
     SchrodingerDog public schrodingerDog;
@@ -197,6 +194,15 @@ contract SchrodingerDogTest is Test,ERC721Holder {
         //Assert to make sure _kevin mint is success
         assertEq(schrodingerDog.totalMintedOfOwner(_kevin),3);
         assertEq(schrodingerDog.ownerOf(3),_kevin);
+
+        //Assert to check TokenId of Owner
+        uint256[] memory tokenId = schrodingerDog.tokensOfOwner(_kevin);
+        uint256[] memory testTokenId = new uint256[](3);
+        testTokenId[0] = 1;
+        testTokenId[1] = 2;
+        testTokenId[2] = 3;
+        assertEq(tokenId[0],testTokenId[0]);
+        
         
         //Assert to check if owner balance before withdraw
         assertEq(address(this).balance,10 ether);
