@@ -6,7 +6,7 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-// import {MerkleProof} from "@openzeppelin-contracts\contracts\utils\cryptography\MerkleProof.sol";
+import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 
 pragma solidity >=0.8.19;
@@ -29,14 +29,34 @@ contract SchrodingerDog is ERC721A , ERC721AQueryable, Ownable {
     setBaseURI(_initBaseURI);
   }
 
+  enum Status {
+    whitelistMint,
+    publicMint
+  }
+
+  Status public status;
+
   // internal
   function _baseURI() internal view virtual override returns (string memory) {
     return baseURI;
   }
 
-  // public
+  // Public Mint
   function mint(uint256 quantity) external payable {
-    uint256 supply = totalSupply();
+    uint256 supply = _totalMinted();
+    require(status == Status.publicMint,"Not Available for public");
+    require(quantity > 0,"Quantity couldn't be 0");
+    require(quantity <= maxMintAmount,"Quantity cannot be over the max mint amount");
+    require(supply + quantity <= maxSupply);
+    require(msg.value >= cost * quantity,"insufficient fund");
+
+    _mint(msg.sender, quantity);
+
+  }
+
+  // Whitelist Mint
+  function whitelistMint(uint256 quantity) external payable {
+    uint256 supply = _totalMinted();
     require(block.timestamp >= releaseDate,"Havent Release Yet!");
     require(quantity > 0,"Quantity couldn't be 0");
     require(quantity <= maxMintAmount,"Quantity cannot be over the max mint amount");
@@ -47,8 +67,9 @@ contract SchrodingerDog is ERC721A , ERC721AQueryable, Ownable {
 
   }
 
+  // Owner Mint
   function freeMint(uint256 quantity) external onlyOwner {
-    uint256 supply = totalSupply();
+    uint256 supply = _totalMinted();
     require(block.timestamp >= releaseDate,"Havent Release Yet!");
     require(quantity > 0,"Quantity couldn't be 0");
     require(quantity <= maxMintAmount,"Quantity cannot be over the max mint amount");
@@ -88,12 +109,17 @@ contract SchrodingerDog is ERC721A , ERC721AQueryable, Ownable {
   function setBaseExtension(string memory _newBaseExtension) external onlyOwner {
     baseExtension = _newBaseExtension;
   }
+
+  function setStatus(Status _newStatus) external onlyOwner{
+    status = _newStatus;
+  }
  
   function withdraw(address to) external onlyOwner {
     (bool success, ) = payable(to).call{value: address(this).balance}("");
     require(success);
   }
 
+  //Override Function
   function _startTokenId() internal pure override returns(uint256) {
     return 1;
   }

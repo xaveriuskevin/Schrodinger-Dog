@@ -168,9 +168,24 @@ contract SchrodingerDogTest is Test,ERC721Holder {
         vm.startPrank(_kevin);
         vm.expectRevert("Ownable: caller is not the owner");
         schrodingerDog.freeMint(3);
-        vm.expectRevert("Havent Release Yet!");
+
+        //Failed to Mint Because of Mint Status --> Current status (whitelistMint)
+        vm.expectRevert("Not Available for public");
         schrodingerDog.mint{value: 0.01 ether}(3);
-        vm.warp(1688371121);  
+
+        //Public Try to Set Status  
+        vm.expectRevert("Ownable: caller is not the owner");
+        schrodingerDog.setStatus(SchrodingerDog.Status.publicMint);
+        vm.stopPrank();
+
+        //Owner Set Status to Public Mint
+        schrodingerDog.setStatus(SchrodingerDog.Status.publicMint);
+
+        //Assert New Status
+        // assertEq(schrodingerDog.Status(), "publicMint");
+
+        //Public Try to Mint After Status Change
+        vm.startPrank(_kevin);
         schrodingerDog.mint{value: 0.01 ether}(5);
         vm.stopPrank();
 
