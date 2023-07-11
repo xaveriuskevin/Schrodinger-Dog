@@ -20,13 +20,16 @@ contract SchrodingerDog is ERC721A , ERC721AQueryable, Ownable {
   uint256 public maxSupply = 10000;
   uint256 public maxMintAmount = 200;
   uint256 public releaseDate = 1688169600; // Unix  Timestamp July 1st 2023
+  bytes32 public immutable merkleRoot;
 
   constructor(
     string memory _name,
     string memory _symbol,
-    string memory _initBaseURI
+    string memory _initBaseURI,
+    bytes32 _merkleRoot
   ) ERC721A(_name, _symbol) {
     setBaseURI(_initBaseURI);
+    merkleRoot = _merkleRoot;
   }
 
   enum Status {
@@ -46,7 +49,7 @@ contract SchrodingerDog is ERC721A , ERC721AQueryable, Ownable {
     uint256 supply = _totalMinted();
     require(status == Status.publicMint,"Not Available for public");
     require(quantity > 0,"Quantity couldn't be 0");
-    require(quantity <= maxMintAmount,"Quantity cannot be over the max mint amount");
+    require(quantity <= maxMintAmount,"cannot be over the max mint amount");
     require(supply + quantity <= maxSupply);
     require(msg.value >= cost * quantity,"insufficient fund");
 
@@ -55,13 +58,12 @@ contract SchrodingerDog is ERC721A , ERC721AQueryable, Ownable {
   }
 
   // Whitelist Mint
-  function whitelistMint(uint256 quantity) external payable {
-    uint256 supply = _totalMinted();
-    require(block.timestamp >= releaseDate,"Havent Release Yet!");
-    require(quantity > 0,"Quantity couldn't be 0");
-    require(quantity <= maxMintAmount,"Quantity cannot be over the max mint amount");
-    require(supply + quantity <= maxSupply);
-    require(msg.value >= cost * quantity,"insufficient fund");
+  function whitelistMint(uint256 quantity, bytes32[] memory proof) external payable {
+    
+    require(status == Status.whitelistMint, "Not Available For Whtielist");
+    require(MerkleProof.verify(proof,merkleRoot,keccak256(
+            abi.encodePacked(msg.sender)
+        )), "Failed Verification");
 
     _mint(msg.sender, quantity);
 

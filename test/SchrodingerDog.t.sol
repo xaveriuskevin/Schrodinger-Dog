@@ -9,14 +9,24 @@ import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Hol
 contract SchrodingerDogTest is Test,ERC721Holder {
     SchrodingerDog public schrodingerDog;
     //Set Address Public
+    //Excluded in whitelist (Testing Purposes)
     address _kevin = address(0x7777);
+    address _devin = address(0x1b159de6a5084047220adf1c63e166a18f84f2c9);
+    address _valvin = address(0x222Da5f13D800Ff94947C20e8714E103822Ff716);
+
+    //Included in whitelist 
+    address _toni = address(0xe3f67c7ad8Af0dFFe5C17b397cAf94582306ec4B);
+    address _sori = address(0x409d3543754C0629dCEA5A1DAA7d8edD72AaDdfE);
+    address _meri = address(0x818833a439DA3a34253304993A78052644237855);
+
+    
 
     //Contract can receive Money
     receive() external payable {}
 
     function setUp() public {
         //Default Owner Test Deployed Contract
-        schrodingerDog = new SchrodingerDog("Schrodinger Dog", "SD-K","https://api.coolcatsnft.com/cat/");
+        schrodingerDog = new SchrodingerDog("Schrodinger Dog", "SD-K","https://api.coolcatsnft.com/cat/", "8e6478a55ca94f53a5c5dadd988ddb63531f511fae7cb1cbc54619a10f1e0880");
 
         //Give Public Address Money
         vm.deal(_kevin,10 ether);
