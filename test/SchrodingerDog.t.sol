@@ -11,13 +11,13 @@ contract SchrodingerDogTest is Test,ERC721Holder {
     //Set Address Public
     //Excluded in whitelist (Testing Purposes)
     address _kevin = address(0x7777);
-    address _devin = address(0x1b159de6a5084047220adf1c63e166a18f84f2c9);
+    address _devin = address(0x35F6Db157c8f033037E82e8E4A0cC15e2B0B9777);
     address _valvin = address(0x222Da5f13D800Ff94947C20e8714E103822Ff716);
 
     //Included in whitelist 
-    address _toni = address(0xe3f67c7ad8Af0dFFe5C17b397cAf94582306ec4B);
-    address _sori = address(0x409d3543754C0629dCEA5A1DAA7d8edD72AaDdfE);
-    address _meri = address(0x818833a439DA3a34253304993A78052644237855);
+    address _sori = address(0xe3f67c7ad8Af0dFFe5C17b397cAf94582306ec4B);
+    address _meri = address(0x409d3543754C0629dCEA5A1DAA7d8edD72AaDdfE);
+    address _tori = address(0x818833a439DA3a34253304993A78052644237855);
 
     
 
@@ -26,10 +26,16 @@ contract SchrodingerDogTest is Test,ERC721Holder {
 
     function setUp() public {
         //Default Owner Test Deployed Contract
-        schrodingerDog = new SchrodingerDog("Schrodinger Dog", "SD-K","https://api.coolcatsnft.com/cat/", "8e6478a55ca94f53a5c5dadd988ddb63531f511fae7cb1cbc54619a10f1e0880");
+        schrodingerDog = new SchrodingerDog("Schrodinger Dog", "SD-K","https://api.coolcatsnft.com/cat/",0x202b2847c4e7ea61b9ad21429d415eb62e7979278cac8dddf146106fa5436709);
 
         //Give Public Address Money
         vm.deal(_kevin,10 ether);
+        vm.deal(_devin,10 ether);
+        vm.deal(_valvin,10 ether);
+
+        vm.deal(_tori,10 ether);
+        vm.deal(_sori,10 ether);
+        vm.deal(_meri,10 ether);
 
         //Give Owner Address Money
         vm.deal(address(this),10 ether);
@@ -240,5 +246,28 @@ contract SchrodingerDogTest is Test,ERC721Holder {
 
         //Assert if contract Balance Decrease
         assertEq(address(schrodingerDog).balance, 0 ether);
+    }
+
+
+    function testWhiteListMint() public {
+
+        //set status to whitelistmint
+        schrodingerDog.setStatus(SchrodingerDog.Status.whitelistMint);
+
+        //Proof For Sori
+        bytes32[] memory proofSori = new bytes32[](2);
+        proofSori[0] = 0x5073917c7fa2e6661f8b3a5e84cf61ca625bdd1cca68f985ef8378f8114e823c;
+        proofSori[1] = 0x37ae62c37e507b5c45eda43e2c8d2d215f4d2fd06c03a15e5f5883d0652388a3;
+
+        //Public Try to Mint while state is Whitelist
+        vm.startPrank(_devin);
+        vm.expectRevert("Failed Verification");
+        schrodingerDog.whitelistMint{value: 1 ether}(1, proofSori);
+        vm.stopPrank();
+
+        //Sori (Included in whitelist) try to mint
+        vm.startPrank(_sori);
+        schrodingerDog.whitelistMint{value: 1 ether}(1, proofSori);
+        vm.stopPrank();
     }
 }
