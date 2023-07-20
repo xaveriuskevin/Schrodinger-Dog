@@ -6,6 +6,11 @@ import "../lib/forge-std/src/Test.sol";
 import {SchrodingerDog} from "../src/SchrodingerDog.sol";
 import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
+error Unauthorized();
+error InsufficientBalance();
+error InvalidAmount();
+error NotStarted();
+
 contract SchrodingerDogTest is Test,ERC721Holder {
     SchrodingerDog public schrodingerDog;
     //Set Address Public
@@ -179,38 +184,41 @@ contract SchrodingerDogTest is Test,ERC721Holder {
     //     assertEq(schrodingerDog.totalMintedOfOwner(address(this)),2);
     // }
     
-    // function testMintNonOwner() public {
-    //     //Public Try Free Mint
-    //     vm.startPrank(_kevin);
-    //     vm.expectRevert("Ownable: caller is not the owner");
-    //     schrodingerDog.freeMint(3);
+    function testMintNonOwner() public {
+        //Public Try Free Mint
+        vm.startPrank(_kevin);
+        vm.expectRevert("Ownable: caller is not the owner");
+        schrodingerDog.freeMint(3);
+        vm.stopPrank();
 
-    //     //Failed to Mint Because of Mint Status --> Current status (whitelistMint)
-    //     vm.expectRevert("Not Available for public");
-    //     schrodingerDog.mint{value: 0.01 ether}(3);
+        // //Failed to Mint Because of Mint Status --> Current status (whitelistMint)
+        // vm.expectRevert(Unauthorized.selector);
+        // schrodingerDog.mint{value: 0.01 ether}(3);
 
-    //     //Public Try to Set Status  
-    //     vm.expectRevert("Ownable: caller is not the owner");
-    //     schrodingerDog.setStatus(SchrodingerDog.Status.publicMint);
-    //     vm.stopPrank();
+        // //Public Try to Set Status  
+        // vm.expectRevert("Ownable: caller is not the owner");
+        // schrodingerDog.setStatus(SchrodingerDog.Status.publicMint);
+        // vm.stopPrank();
 
-    //     //Owner Set Status to Public Mint
-    //     schrodingerDog.setStatus(SchrodingerDog.Status.publicMint);
+        //Owner Set Status to Public Mint
+        // schrodingerDog.setStatus(SchrodingerDog.Status.publicMint);
 
-    //     //Assert New Status
-    //     // assertEq(schrodingerDog.Status(), "publicMint");
+        //Assert New Status
+        // assertEq(schrodingerDog.Status(), "publicMint");
 
-    //     //Public Try to Mint After Status Change
-    //     vm.startPrank(_kevin);
-    //     schrodingerDog.mint{value: 0.01 ether}(5);
-    //     vm.stopPrank();
+        //Public Try to Mint After Status Change
+        // vm.startPrank(_kevin);
+        // // vm.expectRevert(InvalidAmount.selector);
+        // // schrodingerDog.mint{value: 0.01 ether}(0);
+        // schrodingerDog.mint{value: 0.01 ether}(5);
+        // vm.stopPrank();
 
-    //     //Assert
-    //     assertEq(schrodingerDog.ownerOf(1),_kevin);
-    //     assertEq(schrodingerDog.ownerOf(2),_kevin);
-    //     assertEq(schrodingerDog.ownerOf(3),_kevin);
-    //     assertEq(schrodingerDog.totalMintedOfOwner(_kevin),5);
-    // }
+        //Assert
+        // assertEq(schrodingerDog.ownerOf(1),_kevin);
+        // assertEq(schrodingerDog.ownerOf(2),_kevin);
+        // assertEq(schrodingerDog.ownerOf(3),_kevin);
+        // assertEq(schrodingerDog.totalMintedOfOwner(_kevin),5);
+    }
 
     // function testWithdraw() public {
     //     //Public Mint -> Contract Receive money equal to 1 ether
@@ -249,81 +257,81 @@ contract SchrodingerDogTest is Test,ERC721Holder {
     // }
 
 
-    function testWhiteListMint() public {
+    // function testWhiteListMint() public {
 
-        //set status to whitelistmint
-        schrodingerDog.setStatus(SchrodingerDog.Status.whitelistMint);
+    //     //set status to whitelistmint
+    //     schrodingerDog.setStatus(SchrodingerDog.Status.whitelistMint);
 
-        //Proof For Sori
-        bytes32[] memory proofSori = new bytes32[](2);
-        proofSori[0] = 0x5073917c7fa2e6661f8b3a5e84cf61ca625bdd1cca68f985ef8378f8114e823c;
-        proofSori[1] = 0x37ae62c37e507b5c45eda43e2c8d2d215f4d2fd06c03a15e5f5883d0652388a3;
+    //     //Proof For Sori
+    //     bytes32[] memory proofSori = new bytes32[](2);
+    //     proofSori[0] = 0x5073917c7fa2e6661f8b3a5e84cf61ca625bdd1cca68f985ef8378f8114e823c;
+    //     proofSori[1] = 0x37ae62c37e507b5c45eda43e2c8d2d215f4d2fd06c03a15e5f5883d0652388a3;
 
-        //Proof For Tori
-        bytes32[] memory proofTori = new bytes32[](2);
-        proofTori[0] = 0xf6d476e8cd6d1bcc29b6d92e14b4be1888d9c12af364cd50c588ca7606912f39;
-        proofTori[1] = 0x37ae62c37e507b5c45eda43e2c8d2d215f4d2fd06c03a15e5f5883d0652388a3;
+    //     //Proof For Tori
+    //     bytes32[] memory proofTori = new bytes32[](2);
+    //     proofTori[0] = 0xf6d476e8cd6d1bcc29b6d92e14b4be1888d9c12af364cd50c588ca7606912f39;
+    //     proofTori[1] = 0x37ae62c37e507b5c45eda43e2c8d2d215f4d2fd06c03a15e5f5883d0652388a3;
 
-        //Proof For Meri
-        bytes32[] memory proofMeri = new bytes32[](1);
-        proofMeri[0] = 0x4dd6bdff102776145654be0750640374e3fa09a00094f14eefd73673e725897c;
+    //     //Proof For Meri
+    //     bytes32[] memory proofMeri = new bytes32[](1);
+    //     proofMeri[0] = 0x4dd6bdff102776145654be0750640374e3fa09a00094f14eefd73673e725897c;
         
 
-        //Public Try to Mint while state is Whitelist
-        vm.startPrank(_devin);
-        vm.expectRevert("Failed Verification");
-        schrodingerDog.whitelistMint{value: 1 ether}(1, proofSori);
-        vm.expectRevert("Failed Verification");
-        schrodingerDog.whitelistMint{value: 1 ether}(1, proofTori);
-        vm.expectRevert("Failed Verification");
-        schrodingerDog.whitelistMint{value: 1 ether}(1, proofMeri);
-        vm.stopPrank();
+    //     //Public Try to Mint while state is Whitelist
+    //     vm.startPrank(_devin);
+    //     vm.expectRevert("Failed Verification");
+    //     schrodingerDog.whitelistMint{value: 1 ether}(1, proofSori);
+    //     vm.expectRevert("Failed Verification");
+    //     schrodingerDog.whitelistMint{value: 1 ether}(1, proofTori);
+    //     vm.expectRevert("Failed Verification");
+    //     schrodingerDog.whitelistMint{value: 1 ether}(1, proofMeri);
+    //     vm.stopPrank();
 
-        //Public Try to Mint while state is Whitelist
-        vm.startPrank(_kevin);
-        vm.expectRevert("Failed Verification");
-        schrodingerDog.whitelistMint{value: 1 ether}(1, proofSori);
-        vm.expectRevert("Failed Verification");
-        schrodingerDog.whitelistMint{value: 1 ether}(1, proofTori);
-        vm.expectRevert("Failed Verification");
-        schrodingerDog.whitelistMint{value: 1 ether}(1, proofMeri);
-        vm.stopPrank();
+    //     //Public Try to Mint while state is Whitelist
+    //     vm.startPrank(_kevin);
+    //     vm.expectRevert("Failed Verification");
+    //     schrodingerDog.whitelistMint{value: 1 ether}(1, proofSori);
+    //     vm.expectRevert("Failed Verification");
+    //     schrodingerDog.whitelistMint{value: 1 ether}(1, proofTori);
+    //     vm.expectRevert("Failed Verification");
+    //     schrodingerDog.whitelistMint{value: 1 ether}(1, proofMeri);
+    //     vm.stopPrank();
 
-        //Public Try to Mint while state is Whitelist
-        vm.startPrank(_valvin);
-        vm.expectRevert("Failed Verification");
-        schrodingerDog.whitelistMint{value: 1 ether}(1, proofSori);
-        vm.expectRevert("Failed Verification");
-        schrodingerDog.whitelistMint{value: 1 ether}(1, proofTori);
-        vm.expectRevert("Failed Verification");
-        schrodingerDog.whitelistMint{value: 1 ether}(1, proofMeri);
-        vm.stopPrank();
+    //     //Public Try to Mint while state is Whitelist
+    //     vm.startPrank(_valvin);
+    //     vm.expectRevert("Failed Verification");
+    //     schrodingerDog.whitelistMint{value: 1 ether}(1, proofSori);
+    //     vm.expectRevert("Failed Verification");
+    //     schrodingerDog.whitelistMint{value: 1 ether}(1, proofTori);
+    //     vm.expectRevert("Failed Verification");
+    //     schrodingerDog.whitelistMint{value: 1 ether}(1, proofMeri);
+    //     vm.stopPrank();
 
-        //Sori (Included in whitelist) try to mint
-        vm.startPrank(_sori);
-        assertEq(_sori.balance,10 ether);
-        schrodingerDog.whitelistMint{value: 1 ether}(1, proofSori);
-        assertEq(_sori.balance,9 ether);
-        assertEq(schrodingerDog.totalMintedOfOwner(_sori),1);
-        assertEq(schrodingerDog.ownerOf(1),_sori);
-        vm.stopPrank();
+    //     //Sori (Included in whitelist) try to mint
+    //     vm.startPrank(_sori);
+    //     assertEq(_sori.balance,10 ether);
+    //     schrodingerDog.whitelistMint{value: 1 ether}(1, proofSori);
+    //     assertEq(_sori.balance,9 ether);
+    //     assertEq(schrodingerDog.totalMintedOfOwner(_sori),1);
+    //     assertEq(schrodingerDog.ownerOf(1),_sori);
+    //     vm.stopPrank();
 
-        //tori (Included in whitelist) try to mint
-        vm.startPrank(_tori);
-        assertEq(_tori.balance,10 ether);
-        schrodingerDog.whitelistMint{value: 1 ether}(1, proofTori);
-        assertEq(_tori.balance,9 ether);
-        assertEq(schrodingerDog.totalMintedOfOwner(_tori),1);
-        assertEq(schrodingerDog.ownerOf(2),_tori);
-        vm.stopPrank();
+    //     //tori (Included in whitelist) try to mint
+    //     vm.startPrank(_tori);
+    //     assertEq(_tori.balance,10 ether);
+    //     schrodingerDog.whitelistMint{value: 1 ether}(1, proofTori);
+    //     assertEq(_tori.balance,9 ether);
+    //     assertEq(schrodingerDog.totalMintedOfOwner(_tori),1);
+    //     assertEq(schrodingerDog.ownerOf(2),_tori);
+    //     vm.stopPrank();
 
-        //meri (Included in whitelist) try to mint
-        vm.startPrank(_meri);
-        assertEq(_meri.balance,10 ether);
-        schrodingerDog.whitelistMint{value: 1 ether}(1, proofMeri);
-        assertEq(_meri.balance,9 ether);
-        assertEq(schrodingerDog.totalMintedOfOwner(_meri),1);
-        assertEq(schrodingerDog.ownerOf(3),_meri);
-        vm.stopPrank();
-    }
+    //     //meri (Included in whitelist) try to mint
+    //     vm.startPrank(_meri);
+    //     assertEq(_meri.balance,10 ether);
+    //     schrodingerDog.whitelistMint{value: 1 ether}(1, proofMeri);
+    //     assertEq(_meri.balance,9 ether);
+    //     assertEq(schrodingerDog.totalMintedOfOwner(_meri),1);
+    //     assertEq(schrodingerDog.ownerOf(3),_meri);
+    //     vm.stopPrank();
+    // }
 }

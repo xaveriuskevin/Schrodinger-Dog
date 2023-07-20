@@ -11,6 +11,12 @@ import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProo
 
 pragma solidity >=0.8.19;
 
+error Unauthorized();
+error InsufficientBalance();
+error InvalidAmount();
+error NotStarted();
+
+
 contract SchrodingerDog is ERC721A , ERC721AQueryable, Ownable {
   using Strings for uint256;
 
@@ -19,7 +25,7 @@ contract SchrodingerDog is ERC721A , ERC721AQueryable, Ownable {
   uint256 public cost = 0.0005 ether;
   uint256 public maxSupply = 10000;
   uint256 public maxMintAmount = 200;
-  uint256 public releaseDate = 1688169600; // Unix  Timestamp July 1st 2023
+  uint256 public releaseDate = 1692521487; // Unix  Timestamp July 1st 2023
   bytes32 public immutable merkleRoot;
 
   constructor(
@@ -46,12 +52,16 @@ contract SchrodingerDog is ERC721A , ERC721AQueryable, Ownable {
 
   // Public Mint
   function mint(uint256 quantity) external payable {
-    uint256 supply = _totalMinted();
-    require(status == Status.publicMint,"Not Available for public");
-    require(quantity > 0,"Quantity couldn't be 0");
-    require(quantity <= maxMintAmount,"cannot be over the max mint amount");
-    require(supply + quantity <= maxSupply);
-    require(msg.value >= cost * quantity,"insufficient fund");
+    if(status == Status.publicMint) 
+      revert Unauthorized();
+    if(quantity <= 0)
+      revert InvalidAmount();
+    if(quantity >= maxMintAmount)
+      revert InvalidAmount();
+    if(_totalMinted() + quantity >= maxSupply)
+      revert InvalidAmount();
+    if(msg.value <= cost * quantity)
+      revert InsufficientBalance();
 
     _mint(msg.sender, quantity);
 
@@ -71,11 +81,11 @@ contract SchrodingerDog is ERC721A , ERC721AQueryable, Ownable {
 
   // Owner Mint
   function freeMint(uint256 quantity) external onlyOwner {
-    uint256 supply = _totalMinted();
-    require(block.timestamp >= releaseDate,"Havent Release Yet!");
-    require(quantity > 0,"Quantity couldn't be 0");
-    require(quantity <= maxMintAmount,"Quantity cannot be over the max mint amount");
-    require(supply + quantity <= maxSupply);
+    if(block.timestamp < releaseDate)
+      revert NotStarted();
+    // require(quantity > 0,"Quantity couldn't be 0");
+    // require(quantity <= maxMintAmount,"Quantity cannot be over the max mint amount");
+    // require(_totalMinted() + quantity <= maxSupply);
 
     _mint(msg.sender, quantity);
   }
