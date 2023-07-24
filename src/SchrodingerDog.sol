@@ -12,6 +12,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 //Import ERC2981 (Royalties)
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
+import {OperatorFilterer} from "closedsea/OperatorFilterer.sol";
 
 //Merkle Proof
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
@@ -77,6 +78,10 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
     //Merkle Root for whitelist
     merkleRoot = _merkleRoot;
 
+    //Setup Marketplace Operator Filtering
+    _registerForOperatorFiltering();
+    operatorFilteringEnabled = true;
+
     //5% Enforce Royalites
     _setDefaultRoyalty(_royaltyReceiver, 500);
   }
@@ -91,23 +96,23 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
      * @param proof Proof generated from the backend
   */
   function whitelistMint(uint8 qty, bytes32[] memory proof) external payable {
-      if (saleStatus != SaleStatus.WHITELIST) revert InvalidSaleStatus();
-      if (_totalMinted() + qty > maxSupply) revert SupplyExceeded();
-      if (msg.value < whitelistPrice * qty) revert InsufficientBalance();
+    if (saleStatus != SaleStatus.WHITELIST) revert InvalidSaleStatus();
+    if (_totalMinted() + qty > maxSupply) revert SupplyExceeded();
+    if (msg.value < whitelistPrice * qty) revert InsufficientBalance();
 
-      // Validate signature
-      if(!MerkleProof.verify(proof,merkleRoot,keccak256(abi.encodePacked(msg.sender))))
-        revert InvalidProof();
+    // Validate signature
+    if(!MerkleProof.verify(proof,merkleRoot,keccak256(abi.encodePacked(msg.sender))))
+      revert InvalidProof();
 
-      // Validate that user still has whitelist spots
-      uint64 wlMintCount = _getAux(msg.sender) + qty;
-      if (wlMintCount > whitelistMintsPerWallet) revert WhitelistExceeded();
+    // Validate that user still has whitelist spots
+    uint64 wlMintCount = _getAux(msg.sender) + qty;
+    if (wlMintCount > whitelistMintsPerWallet) revert WhitelistExceeded();
 
-      // Update whitelist used count
-      _setAux(msg.sender, wlMintCount);
+    // Update whitelist used count
+    _setAux(msg.sender, wlMintCount);
 
-      // Mint tokens
-      _mint(msg.sender, qty);
+    // Mint tokens
+    _mint(msg.sender, qty);
   }
 
   /**
@@ -121,7 +126,7 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
 
     // Determine number of public mints by substracting whitelist mints from total mints
     if (_numberMinted(msg.sender) - _getAux(msg.sender) + qty > publicMintsPerWallet) {
-        revert WalletLimitExceeded();
+      revert WalletLimitExceeded();
     }
 
     // Mint tokens
@@ -133,8 +138,8 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
     * @param qty Number of NFTs to mint
   */
   function ownerMint(uint256 qty) external onlyOwner {
-      if (_totalMinted() + qty > maxSupply) revert SupplyExceeded();
-      _mint(msg.sender, qty);
+    if (_totalMinted() + qty > maxSupply) revert SupplyExceeded();
+    _mint(msg.sender, qty);
   }
 
   /**
@@ -142,15 +147,15 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
     * @param _owner Address to check
   */
   function whitelistMintCount(address _owner) external view returns (uint64) {
-      return _getAux(_owner);
+    return _getAux(_owner);
   }
 
   /**
     * View function to get number of total mints an Owner has done.
     * @param _owner Address to check
-    */
+  */
   function totalMintCount(address _owner) external view returns (uint256) {
-      return _numberMinted(_owner);
+    return _numberMinted(_owner);
   }
 
   // =========================================================================
@@ -158,11 +163,11 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
   // =========================================================================
   
   /**
-     * Owner-only function to set the current sale state.
-     * @param _saleStatus New sale state
-    */
+    * Owner-only function to set the current sale state.
+    * @param _saleStatus New sale state
+  */
   function setSaleStatus(SaleStatus _saleStatus) external onlyOwner {
-      saleStatus = _saleStatus;
+    saleStatus = _saleStatus;
   }
 
   /**
@@ -171,8 +176,8 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
     * @param _publicPrice New public mint price
   */
   function setPrices(uint256 _whitelistPrice, uint256 _publicPrice) external onlyOwner {
-      whitelistPrice = _whitelistPrice;
-      publicPrice = _publicPrice;
+    whitelistPrice = _whitelistPrice;
+    publicPrice = _publicPrice;
   }
 
   /**
@@ -180,8 +185,8 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
     * @param _maxSupply The new supply count
   */
   function setMaxSupply(uint256 _maxSupply) external onlyOwner {
-      if (_maxSupply >= maxSupply) revert InvalidNewSupply();
-      maxSupply = _maxSupply;
+    if (_maxSupply >= maxSupply) revert InvalidNewSupply();
+    maxSupply = _maxSupply;
   }
 
   /**
@@ -190,8 +195,8 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
     * @param _publicMint The new Maximum Public Mint
   */
   function setMaxMint(uint8 _whitelistMint , uint8 _publicMint) external onlyOwner {
-       whitelistMintsPerWallet = _whitelistMint;
-       publicMintsPerWallet = _publicMint;
+    whitelistMintsPerWallet = _whitelistMint;
+    publicMintsPerWallet = _publicMint;
   }
 
   /**
@@ -199,10 +204,10 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
     * @param receiver Destination address to receive funds
   */
   function withdrawFunds(address receiver) external onlyOwner {
-      (bool sent,) = receiver.call{value: address(this).balance}("");
-      if (!sent) {
-          revert WithdrawFailed();
-      }
+    (bool sent,) = receiver.call{value: address(this).balance}("");
+    if (!sent) {
+        revert WithdrawFailed();
+    }
   }
 
   // =========================================================================
@@ -236,9 +241,61 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
     * Owner-only function to set the royalty receiver and royalty rate
     * @param receiver Address that will receive royalties
     * @param feeNumerator Royalty amount in basis points. Denominated by 10000
-    */
+  */
   function setDefaultRoyalty(address receiver, uint96 feeNumerator) public onlyOwner {
-      _setDefaultRoyalty(receiver, feeNumerator);
+    _setDefaultRoyalty(receiver, feeNumerator);
+  }
+
+  // =========================================================================
+  //                           Operator filtering
+  // =========================================================================
+
+  /**
+    * Overridden setApprovalForAll with operator filtering.
+  */
+  function setApprovalForAll(address operator, bool approved)
+    public
+    override(ERC721A)
+    onlyAllowedOperatorApproval(operator)
+  {
+    super.setApprovalForAll(operator, approved);
+  }
+
+  /**
+    * Overridden approve with operator filtering.
+  */
+  function approve(address operator, uint256 tokenId)
+    public
+    payable
+    override(ERC721A)
+    onlyAllowedOperatorApproval(operator)
+  {
+    super.approve(operator, tokenId);
+  }
+
+  /**
+    * Overridden transferFrom with operator filtering. For ERC721A, this will also add
+    * operator filtering for both safeTransferFrom functions.
+  */
+  function transferFrom(address from, address to, uint256 tokenId)
+    public
+    payable
+    override(ERC721A)
+    onlyAllowedOperator(from)
+  {
+    super.transferFrom(from, to, tokenId);
+  }
+
+  /**
+    * Owner-only function to toggle operator filtering.
+    * @param value Whether operator filtering is on/off.
+  */
+  function setOperatorFilteringEnabled(bool value) public onlyOwner {
+    operatorFilteringEnabled = value;
+  }
+
+  function _operatorFilteringEnabled() internal view override returns (bool) {
+    return operatorFilteringEnabled;
   }
 
   // =========================================================================
@@ -250,11 +307,11 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
     * @param interfaceId Interface Id to check
     */
   function supportsInterface(bytes4 interfaceId) public view override(ERC721A, ERC2981) returns (bool) {
-      // Supports the following `interfaceId`s:
-      // - IERC165: 0x01ffc9a7
-      // - IERC721: 0x80ac58cd
-      // - IERC721Metadata: 0x5b5e139f
-      // - IERC2981: 0x2a55205a
-      return ERC721A.supportsInterface(interfaceId) || ERC2981.supportsInterface(interfaceId);
+    // Supports the following `interfaceId`s:
+    // - IERC165: 0x01ffc9a7
+    // - IERC721: 0x80ac58cd
+    // - IERC721Metadata: 0x5b5e139f
+    // - IERC2981: 0x2a55205a
+    return ERC721A.supportsInterface(interfaceId) || ERC2981.supportsInterface(interfaceId);
   }
 }
