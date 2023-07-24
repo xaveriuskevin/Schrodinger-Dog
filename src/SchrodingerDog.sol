@@ -29,6 +29,7 @@ error InvalidNewSupply();
 contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
   using Strings for uint256;
 
+  // Base Uri
   string baseURI;
 
   //Extension for Base Uri
@@ -44,7 +45,10 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
   uint256 public whitelistPrice = 0.005 ether;
 
   //Number of Public NFT to Mint
-  uint256 public publicMintsPerWallet = 3;
+  uint8 public publicMintsPerWallet = 3;
+
+  //Number of Public NFT to Mint
+  uint8 public whitelistMintsPerWallet = 3;
 
   //Root for Merkle Proof
   bytes32 public merkleRoot;
@@ -73,8 +77,8 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
     //Merkle Root for whitelist
     merkleRoot = _merkleRoot;
 
-    // 5% Enforce Royalites
-     _setDefaultRoyalty(_royaltyReceiver, 500);
+    //5% Enforce Royalites
+    _setDefaultRoyalty(_royaltyReceiver, 500);
   }
 
   // =========================================================================
@@ -84,10 +88,9 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
   /**
      * Whitelist mint function. 
      * @param qty Number of NFTs to mint
-     * @param mintLimit Max number of NFTs the user can mint
      * @param proof Proof generated from the backend
   */
-  function whitelistMint(uint8 qty, uint8 mintLimit, bytes32[] memory proof) external payable {
+  function whitelistMint(uint8 qty, bytes32[] memory proof) external payable {
       if (saleStatus != SaleStatus.WHITELIST) revert InvalidSaleStatus();
       if (_totalMinted() + qty > maxSupply) revert SupplyExceeded();
       if (msg.value < whitelistPrice * qty) revert InsufficientBalance();
@@ -96,12 +99,12 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
       if(!MerkleProof.verify(proof,merkleRoot,keccak256(abi.encodePacked(msg.sender))))
         revert InvalidProof();
 
-      // Validate that user still has allowlist spots
-      uint64 alMintCount = _getAux(msg.sender) + qty;
-      if (alMintCount > mintLimit) revert WhitelistExceeded();
+      // Validate that user still has whitelist spots
+      uint64 wlMintCount = _getAux(msg.sender) + qty;
+      if (wlMintCount > whitelistMintsPerWallet) revert WhitelistExceeded();
 
-      // Update allowlist used count
-      _setAux(msg.sender, alMintCount);
+      // Update whitelist used count
+      _setAux(msg.sender, wlMintCount);
 
       // Mint tokens
       _mint(msg.sender, qty);
@@ -182,6 +185,16 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
   }
 
   /**
+    * Owner-only function to set Maximum Mint Per Wallet & Whitelist.
+    * @param _whitelistMint The new Maximum Whitelist Mint
+    * @param _publicMint The new Maximum Public Mint
+  */
+  function setMaxMint(uint8 _whitelistMint , uint8 _publicMint) external onlyOwner {
+       whitelistMintsPerWallet = _whitelistMint;
+       publicMintsPerWallet = _publicMint;
+  }
+
+  /**
     * Owner-only function to withdraw funds in the contract to a destination address.
     * @param receiver Destination address to receive funds
   */
@@ -214,7 +227,6 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
   function _startTokenId() internal pure override returns(uint256) {
     return 1;
   }
-
 
   // =========================================================================
   //                                 ERC2891
