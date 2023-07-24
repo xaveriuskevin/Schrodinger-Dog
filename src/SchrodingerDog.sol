@@ -1,138 +1,248 @@
 // SPDX-License-Identifier: MIT
+pragma solidity >=0.8.19;
 
+//Import ERC721A
 import {ERC721A} from "ERC721A/ERC721A.sol";
-import {ERC721AQueryable} from "ERC721A/extensions/ERC721AQueryable.sol";
+
+//Library
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
+//Import ERC2981 (Royalties)
+import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
+
+//Merkle Proof
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
-
-pragma solidity >=0.8.19;
-
-error Unauthorized();
+//Custom Error
 error InsufficientBalance();
-error InvalidAmount();
-error NotStarted();
+error SupplyExceeded();
+error InvalidSaleStatus();
+error InvalidProof();
+error WithdrawFailed();
+error WhitelistExceeded();
+error WalletLimitExceeded();
+error InvalidNewSupply();
 
-
-contract SchrodingerDog is ERC721A , ERC721AQueryable, Ownable {
+contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
   using Strings for uint256;
 
   string baseURI;
+
+  //Extension for Base Uri
   string public baseExtension = "";
-  uint256 public cost = 0.0005 ether;
+  
+  //Total Supply Of the Collection
   uint256 public maxSupply = 10000;
-  uint256 public maxMintAmount = 200;
-  uint256 public releaseDate = 1692521487; // Unix  Timestamp July 1st 2023
-  bytes32 public immutable merkleRoot;
+
+  //Price For the Public Mint
+  uint256 public publicPrice = 0.005 ether;
+
+  //Price for the Whitelist Mint
+  uint256 public whitelistPrice = 0.005 ether;
+
+  //Number of Public NFT to Mint
+  uint256 public publicMintsPerWallet = 3;
+
+  //Root for Merkle Proof
+  bytes32 public merkleRoot;
+
+  //Status For Sales
+  enum SaleStatus {
+    CLOSED,
+    WHITELIST,
+    PUBLIC
+  }
+
+  //Default Status --> CLOSED
+  SaleStatus public saleStatus;
 
   constructor(
     string memory _name,
     string memory _symbol,
     string memory _initBaseURI,
-    bytes32 _merkleRoot
+    bytes32 _merkleRoot,
+    address _royaltyReceiver
   ) ERC721A(_name, _symbol) {
+
+    //Setup Base URI
     setBaseURI(_initBaseURI);
+
+    //Merkle Root for whitelist
     merkleRoot = _merkleRoot;
+
+    // 5% Enforce Royalites
+     _setDefaultRoyalty(_royaltyReceiver, 500);
   }
 
-  enum Status {
-    whitelistMint,
-    publicMint
+  // =========================================================================
+  //                                 Minting
+  // =========================================================================
+
+  /**
+     * Whitelist mint function. 
+     * @param qty Number of NFTs to mint
+     * @param mintLimit Max number of NFTs the user can mint
+     * @param proof Proof generated from the backend
+  */
+  function whitelistMint(uint8 qty, uint8 mintLimit, bytes32[] memory proof) external payable {
+      if (saleStatus != SaleStatus.WHITELIST) revert InvalidSaleStatus();
+      if (_totalMinted() + qty > maxSupply) revert SupplyExceeded();
+      if (msg.value < whitelistPrice * qty) revert InsufficientBalance();
+
+      // Validate signature
+      if(!MerkleProof.verify(proof,merkleRoot,keccak256(abi.encodePacked(msg.sender))))
+        revert InvalidProof();
+
+      // Validate that user still has allowlist spots
+      uint64 alMintCount = _getAux(msg.sender) + qty;
+      if (alMintCount > mintLimit) revert WhitelistExceeded();
+
+      // Update allowlist used count
+      _setAux(msg.sender, alMintCount);
+
+      // Mint tokens
+      _mint(msg.sender, qty);
   }
 
-  Status public status;
+  /**
+    * Public mint function.
+    * @param qty Number of NFTs to mint
+  */
+  function publicMint(uint256 qty) external payable {
+    if (saleStatus != SaleStatus.PUBLIC) revert InvalidSaleStatus();
+    if (_totalMinted() + qty > maxSupply) revert SupplyExceeded();
+    if (msg.value < publicPrice * qty) revert InsufficientBalance();
 
-  // internal
-  function _baseURI() internal view virtual override returns (string memory) {
-    return baseURI;
+    // Determine number of public mints by substracting whitelist mints from total mints
+    if (_numberMinted(msg.sender) - _getAux(msg.sender) + qty > publicMintsPerWallet) {
+        revert WalletLimitExceeded();
+    }
+
+    // Mint tokens
+    _mint(msg.sender, qty);
   }
 
-  // Public Mint
-  function mint(uint256 quantity) external payable {
-    if(status == Status.publicMint) 
-      revert Unauthorized();
-    if(quantity <= 0)
-      revert InvalidAmount();
-    if(quantity >= maxMintAmount)
-      revert InvalidAmount();
-    if(_totalMinted() + quantity >= maxSupply)
-      revert InvalidAmount();
-    if(msg.value <= cost * quantity)
-      revert InsufficientBalance();
-
-    _mint(msg.sender, quantity);
-
+  /**
+    * Owner-only mint function. Used to mint the team treasury.
+    * @param qty Number of NFTs to mint
+  */
+  function ownerMint(uint256 qty) external onlyOwner {
+      if (_totalMinted() + qty > maxSupply) revert SupplyExceeded();
+      _mint(msg.sender, qty);
   }
 
-  // Whitelist Mint
-  function whitelistMint(uint256 quantity, bytes32[] memory proof) external payable {
-    
-    require(status == Status.whitelistMint, "Not Available For Whtielist");
-    require(MerkleProof.verify(proof,merkleRoot,keccak256(
-            abi.encodePacked(msg.sender)
-        )), "Failed Verification");
-
-    _mint(msg.sender, quantity);
-
+  /**
+    * View function to get number of whitelist mints an Owner has done.
+    * @param _owner Address to check
+  */
+  function whitelistMintCount(address _owner) external view returns (uint64) {
+      return _getAux(_owner);
   }
 
-  // Owner Mint
-  function freeMint(uint256 quantity) external onlyOwner {
-    if(block.timestamp < releaseDate)
-      revert NotStarted();
-    // require(quantity > 0,"Quantity couldn't be 0");
-    // require(quantity <= maxMintAmount,"Quantity cannot be over the max mint amount");
-    // require(_totalMinted() + quantity <= maxSupply);
-
-    _mint(msg.sender, quantity);
+  /**
+    * View function to get number of total mints an Owner has done.
+    * @param _owner Address to check
+    */
+  function totalMintCount(address _owner) external view returns (uint256) {
+      return _numberMinted(_owner);
   }
 
-  function totalMintedOfOwner(address _owner)
-    external
-    view
-    returns (uint256)
-  {
-    uint256 tokenIds = _numberMinted(_owner);
-    
-    return tokenIds;
+  // =========================================================================
+  //                             Mint Settings
+  // =========================================================================
+  
+  /**
+     * Owner-only function to set the current sale state.
+     * @param _saleStatus New sale state
+    */
+  function setSaleStatus(SaleStatus _saleStatus) external onlyOwner {
+      saleStatus = _saleStatus;
   }
 
-  //only owner
-
-  function setReleaseDate(uint256 _releaseDate) external onlyOwner {
-    releaseDate = _releaseDate;
+  /**
+    * Owner-only function to set the mint prices.
+    * @param _whitelistPrice New paid allowlist mint price
+    * @param _publicPrice New public mint price
+  */
+  function setPrices(uint256 _whitelistPrice, uint256 _publicPrice) external onlyOwner {
+      whitelistPrice = _whitelistPrice;
+      publicPrice = _publicPrice;
   }
 
-  function setCost(uint256 _newCost) external onlyOwner {
-    cost = _newCost;
+  /**
+    * Owner-only function to set the collection supply. This value can only be decreased.
+    * @param _maxSupply The new supply count
+  */
+  function setMaxSupply(uint256 _maxSupply) external onlyOwner {
+      if (_maxSupply >= maxSupply) revert InvalidNewSupply();
+      maxSupply = _maxSupply;
   }
 
-  function setmaxMintAmount(uint256 _newmaxMintAmount) external onlyOwner {
-    maxMintAmount = _newmaxMintAmount;
+  /**
+    * Owner-only function to withdraw funds in the contract to a destination address.
+    * @param receiver Destination address to receive funds
+  */
+  function withdrawFunds(address receiver) external onlyOwner {
+      (bool sent,) = receiver.call{value: address(this).balance}("");
+      if (!sent) {
+          revert WithdrawFailed();
+      }
   }
 
+  // =========================================================================
+  //                                 Metadata
+  // =========================================================================
+
+  //Set New Base Uri
   function setBaseURI(string memory _newBaseURI) public onlyOwner {
     baseURI = _newBaseURI;
   }
 
+  function _baseURI() internal view override returns (string memory) {
+    return baseURI;
+  }
+
+  //Set New Base Extension
   function setBaseExtension(string memory _newBaseExtension) external onlyOwner {
     baseExtension = _newBaseExtension;
   }
 
-  function setStatus(Status _newStatus) external onlyOwner{
-    status = _newStatus;
-  }
- 
-  function withdraw(address to) external onlyOwner {
-    (bool success, ) = payable(to).call{value: address(this).balance}("");
-    require(success);
-  }
-
-  //Override Function
+  //Override Function so Token Id Start From 1
   function _startTokenId() internal pure override returns(uint256) {
     return 1;
+  }
+
+
+  // =========================================================================
+  //                                 ERC2891
+  // =========================================================================
+
+  /**
+    * Owner-only function to set the royalty receiver and royalty rate
+    * @param receiver Address that will receive royalties
+    * @param feeNumerator Royalty amount in basis points. Denominated by 10000
+    */
+  function setDefaultRoyalty(address receiver, uint96 feeNumerator) public onlyOwner {
+      _setDefaultRoyalty(receiver, feeNumerator);
+  }
+
+  // =========================================================================
+  //                                  ERC165
+  // =========================================================================
+
+  /**
+    * Overridden supportsInterface with IERC721 support and ERC2981 support
+    * @param interfaceId Interface Id to check
+    */
+  function supportsInterface(bytes4 interfaceId) public view override(ERC721A, ERC2981) returns (bool) {
+      // Supports the following `interfaceId`s:
+      // - IERC165: 0x01ffc9a7
+      // - IERC721: 0x80ac58cd
+      // - IERC721Metadata: 0x5b5e139f
+      // - IERC2981: 0x2a55205a
+      return ERC721A.supportsInterface(interfaceId) || ERC2981.supportsInterface(interfaceId);
   }
 }
