@@ -27,7 +27,7 @@ error WhitelistExceeded();
 error WalletLimitExceeded();
 error InvalidNewSupply();
 
-contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
+contract SchrodingerDog is ERC721A , Ownable , ERC2981 , OperatorFilterer {
   using Strings for uint256;
 
   // Base Uri
@@ -43,7 +43,7 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
   uint256 public publicPrice = 0.005 ether;
 
   //Price for the Whitelist Mint
-  uint256 public whitelistPrice = 0.005 ether;
+  uint256 public whitelistPrice = 0.0005 ether;
 
   //Number of Public NFT to Mint
   uint8 public publicMintsPerWallet = 3;
@@ -53,6 +53,9 @@ contract SchrodingerDog is ERC721A , Ownable , ERC2981 {
 
   //Root for Merkle Proof
   bytes32 public merkleRoot;
+
+  // Whether operator filtering is enabled
+  bool public operatorFilteringEnabled;
 
   //Status For Sales
   enum SaleStatus {
