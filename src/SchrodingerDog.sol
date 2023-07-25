@@ -1,20 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.19;
 
-//Import ERC721A
 import {ERC721A} from "ERC721A/ERC721A.sol";
-
-//Library
-import {Address} from "@openzeppelin/contracts/utils/Address.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-
-//Import ERC2981 (Royalties)
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
 import {OperatorFilterer} from "closedsea/OperatorFilterer.sol";
-
-//Merkle Proof
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 //Custom Error
@@ -28,7 +18,6 @@ error WalletLimitExceeded();
 error InvalidNewSupply();
 
 contract SchrodingerDog is ERC721A , Ownable , ERC2981 , OperatorFilterer {
-  using Strings for uint256;
 
   // Base Uri
   string baseURI;
